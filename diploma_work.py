@@ -22,17 +22,17 @@ def get_friends(user_id):
 def get_groups(user_id):
     group_params = {
         'user_id': user_id,
-        # 'extended': 1,
+        'extended': 1,
         'count': '1000',
         'access_token': TOKEN,
         'v': '5.74'
     }
 
     group_json = requests.get('https://api.vk.com/method/groups.get?', group_params)
-    # print(type(group_json), group_json)
-    # print(group_json.text.encode('utf-8'))
-    # print(group_json.response)
-    # exit(0)
+    print(type(group_json), group_json)
+    print(group_json.text.encode('utf-8'))
+    print(group_json.response)
+    exit(0)
     group_dict = group_json.json()['response']
     return set(group_dict['items'])
 
