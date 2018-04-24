@@ -39,27 +39,28 @@ def get_groups(user_id):
     return set(group_dict['items'])
 
 
-def search_group_user(group_set, friends_set):
+def get_friends_groups(friends_set, group_set):
     print('Ищем совпадения')
-    groups = []
-    for group in group_set:
+    for friend in friends_set:
         time.sleep(1)
-        group_params = {
-            'group_id': group,
+        print('Проверяем https://vk.com/id{}'.format(friend))
+        friend_params = {
+            'user_id': friend,
+            'count': '1000',
             'access_token': TOKEN,
             'v': '5.74'
         }
 
-        group_json = requests.get('https://api.vk.com/method/groups.getMembers?', group_params)
-        group_dict = group_json.json()['response']
-        group_users = set(group_dict['items'])
+        group_json = requests.get('https://api.vk.com/method/groups.get?', friend_params)
+        try:
+            group_dict = group_json.json()['response']
+            group_users = set(group_dict['items'])
+            group_set = group_set - group_users
+        except KeyError:
+            error = group_json.json()['error']
+            print('Ошибка № {0} {1}'.format(error['error_code'], error['error_msg']))
 
-        if group_users & friends_set:
-            print('Совпадения есть, пролетаем мимо')
-        else:
-            print('Совпадений нет, группа нам подходит')
-            groups.append(group)
-    return groups
+    return group_set
 
 
 def json_group(group_user_set):
@@ -96,9 +97,11 @@ def json_group(group_user_set):
 def search_groups(user_id):
     friends_set = get_friends(user_id)
     print('Список друзей получен')
+    print(len(friends_set), 'человек')
     group_set = get_groups(user_id)
     print('Список групп получен')
-    group_user_set = search_group_user(group_set, friends_set)
+    print(len(group_set), 'групп')
+    group_user_set = get_friends_groups(friends_set, group_set)
     print('Результат получен:')
     print(len(group_user_set), 'групп')
     json_group(group_user_set)
