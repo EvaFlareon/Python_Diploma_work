@@ -18,9 +18,14 @@ def get_friends(user_id):
     }
 
     friends_json = requests.get('https://api.vk.com/method/friends.get?', friends_params)
-    friends_dict = friends_json.json()['response']
 
-    return set(friends_dict['items'])
+    try:
+        friends_dict = friends_json.json()['response']
+        return set(friends_dict['items'])
+    except KeyError:
+        error = friends_json.json()['error']
+        print('Ошибка № {0} {1}'.format(error['error_code'], error['error_msg']))
+        get_friends(user_id)
 
 
 def get_groups(user_id):
@@ -34,13 +39,19 @@ def get_groups(user_id):
     }
 
     group_json = requests.get('https://api.vk.com/method/groups.get?', group_params)
-    group_dict = group_json.json()['response']
 
-    return set(group_dict['items'])
+    try:
+        group_dict = group_json.json()['response']
+        return set(group_dict['items'])
+    except KeyError:
+        error = group_json.json()['error']
+        print('Ошибка № {0} {1}'.format(error['error_code'], error['error_msg']))
+        get_groups(user_id)
 
 
 def get_friends_groups(friends_set, group_set):
     print('Ищем совпадения')
+
     for friend in friends_set:
         time.sleep(1)
         print('Проверяем https://vk.com/id{}'.format(friend))
@@ -52,6 +63,7 @@ def get_friends_groups(friends_set, group_set):
         }
 
         group_json = requests.get('https://api.vk.com/method/groups.get?', friend_params)
+
         try:
             group_dict = group_json.json()['response']
             group_users = set(group_dict['items'])
